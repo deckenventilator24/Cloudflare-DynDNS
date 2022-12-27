@@ -74,7 +74,7 @@ public class Updater
 	private void createDNSrecord(String domain)
 	{
 		String api_request = api + api_zones + api_dns_records.replace(":ZONEID:", zoneID);
-		String data = " --data '{\"type\":\"A\",\"name\":\":DOMAIN:\",\"content\":\":IPv4:\",\"ttl\":1,\"proxied\":false}'";
+		String data = " --data \"{\\\"type\\\":\\\"A\\\",\\\"name\\\":\\\":DOMAIN:\\\",\\\"content\\\":\\\":IPv4:\\\",\\\"ttl\\\":1,\\\"proxied\\\":false}\"";
 		String cmd = curl.replace(":METHOD:", "POST").replace(":API_REQUEST:", api_request) + curl_suffix.replace(":TOKEN:", token).replace(":USER:", user) + data.replace(":DOMAIN:", domain).replace(":IPv4:", ip);
 		try
 		{
@@ -101,7 +101,7 @@ public class Updater
 			createDNSrecord(domain);
 		
 		String api_request = api + api_zones + api_dns_records.replace(":ZONEID:", zoneID) + "/" + dns_zone_id;
-		String data = " --data '{\"type\":\"A\",\"name\":\":DOMAIN:\",\"content\":\":IPv4:\",\"ttl\":1,\"proxied\":false}'";
+		String data = " --data \"{\\\"type\\\":\\\"A\\\",\\\"name\\\":\\\":DOMAIN:\\\",\\\"content\\\":\\\":IPv4:\\\",\\\"ttl\\\":1,\\\"proxied\\\":false}\"";
 		String cmd = curl.replace(":METHOD:", "PUT").replace(":API_REQUEST:", api_request) + curl_suffix.replace(":TOKEN:", token).replace(":USER:", user) + data.replace(":DOMAIN:", domain).replace(":IPv4:", ip);
 		try
 		{
