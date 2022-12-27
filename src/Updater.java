@@ -78,7 +78,7 @@ public class Updater
 		String cmd = curl.replace(":METHOD:", "POST").replace(":API_REQUEST:", api_request) + curl_suffix.replace(":TOKEN:", token).replace(":USER:", user) + data.replace(":DOMAIN:", domain).replace(":IPv4:", ip);
 		try
 		{
-			String answer = runCommand("wsl " + cmd);
+			String answer = runCommand(cmd);
 			if(getResponse(answer) != null)
 				System.out.println("[INFO] <API> Successfully created dns A record for " + domain + " with IP " + ip);
 		}
@@ -105,7 +105,7 @@ public class Updater
 		String cmd = curl.replace(":METHOD:", "PUT").replace(":API_REQUEST:", api_request) + curl_suffix.replace(":TOKEN:", token).replace(":USER:", user) + data.replace(":DOMAIN:", domain).replace(":IPv4:", ip);
 		try
 		{
-			String answer = runCommand("wsl " + cmd);
+			String answer = runCommand(cmd);
 			if(getResponse(answer) != null)
 				System.out.println("[INFO] <API> Successfully updated dns A record for " + domain + " with IP " + ip);
 		}
@@ -122,7 +122,7 @@ public class Updater
 		String cmd = curl.replace(":METHOD:", "GET").replace(":API_REQUEST:", api_request) + curl_suffix.replace(":TOKEN:", token).replace(":USER:", user);
 		try
 		{
-			String answer = runCommand("wsl " + cmd);
+			String answer = runCommand(cmd);
 			return getResult(answer);
 		}
 		catch(IOException e)
@@ -140,7 +140,7 @@ public class Updater
 		String cmd = curl.replace(":METHOD:", "GET").replace(":API_REQUEST:", api_request) + curl_suffix.replace(":TOKEN:", token).replace(":USER:", user);
 		try
 		{
-			String answer = runCommand("wsl " + cmd);
+			String answer = runCommand(cmd);
 			return getResult(answer);
 		}
 		catch(IOException e)
