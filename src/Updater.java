@@ -1,11 +1,9 @@
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
@@ -16,6 +14,7 @@ import java.util.TimerTask;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.toilelibre.libe.curl.Curl;
 
 public class Updater
 {
@@ -35,7 +34,7 @@ public class Updater
 	private final String api_zones = "/zones";
 	private final String api_dns_records = "/:ZONEID:/dns_records";
 	
-	private final String curl = "curl -X :METHOD: \":API_REQUEST:\"";
+	private final String curl = "curl -X :METHOD: :API_REQUEST:";
 	private final String curl_suffix = " -H \"X-Auth-Email: :USER:\" -H \"Authorization: Bearer :TOKEN:\" -H \"Content-Type: application/json\"";
 	
 	private final String[] ipCatchSites = {"https://cloudflare.com/cdn-cgi/trace", "https://api.ipify.org", "http://checkip.dyndns.org"};
@@ -74,19 +73,12 @@ public class Updater
 	private void createDNSrecord(String domain)
 	{
 		String api_request = api + api_zones + api_dns_records.replace(":ZONEID:", zoneID);
-		String data = " --data \"{\\\"type\\\":\\\"A\\\",\\\"name\\\":\\\":DOMAIN:\\\",\\\"content\\\":\\\":IPv4:\\\",\\\"ttl\\\":1,\\\"proxied\\\":false}\"";
+		String data = " --data '{\"type\":\"A\",\"name\":\":DOMAIN:\",\"content\":\":IPv4:\",\"ttl\":1,\"proxied\":false}'";
 		String cmd = curl.replace(":METHOD:", "POST").replace(":API_REQUEST:", api_request) + curl_suffix.replace(":TOKEN:", token).replace(":USER:", user) + data.replace(":DOMAIN:", domain).replace(":IPv4:", ip);
-		try
-		{
-			String answer = runCommand(cmd);
-			if(getResponse(answer) != null)
-				System.out.println("[INFO] <API> Successfully created dns A record for " + domain + " with IP " + ip);
-		}
-		catch(IOException e)
-		{
-			// TODO handle error from curl
-			e.printStackTrace();
-		}
+		
+		String answer = runCommand(cmd);
+		if(getResponse(answer) != null)
+			System.out.println("[INFO] <API> Successfully created dns A record for " + domain + " with IP " + ip);
 	}
 	
 	private void updateDNSrecords()
@@ -101,55 +93,30 @@ public class Updater
 			createDNSrecord(domain);
 		
 		String api_request = api + api_zones + api_dns_records.replace(":ZONEID:", zoneID) + "/" + dns_zone_id;
-		String data = " --data \"{\\\"type\\\":\\\"A\\\",\\\"name\\\":\\\":DOMAIN:\\\",\\\"content\\\":\\\":IPv4:\\\",\\\"ttl\\\":1,\\\"proxied\\\":false}\"";
+		String data = " --data '{\"type\":\"A\",\"name\":\":DOMAIN:\",\"content\":\":IPv4:\",\"ttl\":1,\"proxied\":false}'";
 		String cmd = curl.replace(":METHOD:", "PUT").replace(":API_REQUEST:", api_request) + curl_suffix.replace(":TOKEN:", token).replace(":USER:", user) + data.replace(":DOMAIN:", domain).replace(":IPv4:", ip);
-		try
-		{
-			String answer = runCommand(cmd);
-			if(getResponse(answer) != null)
-				System.out.println("[INFO] <API> Successfully updated dns A record for " + domain + " with IP " + ip);
-		}
-		catch(IOException e)
-		{
-			// TODO handle error from curl
-			e.printStackTrace();
-		}
+		
+		String answer = runCommand(cmd);
+		if(getResponse(answer) != null)
+			System.out.println("[INFO] <API> Successfully updated dns A record for " + domain + " with IP " + ip);
 	}
 	
 	private JSONArray getDNSrecords()
 	{
 		String api_request = api + api_zones + api_dns_records.replace(":ZONEID:", zoneID);
 		String cmd = curl.replace(":METHOD:", "GET").replace(":API_REQUEST:", api_request) + curl_suffix.replace(":TOKEN:", token).replace(":USER:", user);
-		try
-		{
-			String answer = runCommand(cmd);
-			return getResult(answer);
-		}
-		catch(IOException e)
-		{
-			// TODO handle error from curl
-			e.printStackTrace();
-		}
 		
-		return null;
+		String answer = runCommand(cmd);
+		return getResult(answer);
 	}
 	
 	private JSONArray getZones()
 	{
 		String api_request = api + api_zones;
 		String cmd = curl.replace(":METHOD:", "GET").replace(":API_REQUEST:", api_request) + curl_suffix.replace(":TOKEN:", token).replace(":USER:", user);
-		try
-		{
-			String answer = runCommand(cmd);
-			return getResult(answer);
-		}
-		catch(IOException e)
-		{
-			// TODO handle error from curl
-			e.printStackTrace();
-		}
 		
-		return null;
+		String answer = runCommand(cmd);
+		return getResult(answer);
 	}
 	
 	private String getIP()
@@ -273,21 +240,20 @@ public class Updater
 	
 	private void handleNotSuccessful(JSONObject response)
 	{
-		// TODO
 		System.err.println("[ERROR] <API> got response success:false");
-		System.err.println("[ERROR] <API> " + ((JSONObject) ((JSONArray) response.get("errors")).get(0)).getString("message"));
+		for(int i = 0; i < ((JSONArray) response.get("errors")).length(); i++)
+		{
+			JSONObject obj = (JSONObject) ((JSONArray) response.get("errors")).get(i);
+			if(obj.has("message"))
+				System.err.println("[ERROR] <API> " + obj.get("message"));
+		}
 	}
 	
-	private String runCommand(String command) throws IOException
+	private String runCommand(String command)
 	{
-		Process p = Runtime.getRuntime().exec(command);
-		BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		String output = "";
-		String line = "";
-		while((line = br.readLine()) != null)
-		{
-			output += line + "\n";
-		}
+		String output = null;
+		
+		output = Curl.$(command);
 		
 		return output;
 	}
